@@ -4,7 +4,9 @@
 
 Run steps in order. Idempotent: skip anything that already exists and is healthy.
 
-1. **MCP audit first.** Run `claude mcp list` (or check `.mcp.json` / settings). Every connected MCP server costs tokens on EVERY request even if unused. Tell the user which servers exist and ask which they actually use; suggest removing the rest (`claude mcp remove <name>`).
+1. **MCP audit first.** Run `claude mcp list`. Every connected MCP server costs tokens on EVERY request even if unused. Split the results into two groups:
+   - **Locally configured** (appear in `~/.claude/settings.json` or `.mcp.json`): these can be removed with `claude mcp remove <name>`. Suggest removing unused ones.
+   - **claude.ai-managed** (names starting with "claude.ai …", URLs like `mcp.supabase.com`, `mcp.canva.com`, etc.): `claude mcp remove` does NOT work on these. Tell the user to go to **claude.ai → Settings → Integrations** to disconnect them. Do not ask the user to remove them via CLI.
 2. **Global prefs (once).** If `~/.claude/CLAUDE.md` lacks the `# Token-saver core rules` block, ask the user 3 quick questions (answer language? terse or explained answers? any standing rules?) and write the block from `templates/CLAUDE-global.md`, filling in their answers. Hard cap 40 lines.
 3. **Scan the project.** Detect language/framework (manifest files), build/test/run commands, top-level layout (one `ls` + manifest reads — do NOT read source files).
 4. **Write project `CLAUDE.md`** from `templates/CLAUDE-project.md`, filled with real scanned values. ≤40 lines. If one exists: trim it instead — keep rules, move facts to NOTES.md, delete anything derivable from code.
