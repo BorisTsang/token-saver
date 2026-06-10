@@ -3,7 +3,7 @@
 set -e
 cd "$(dirname "$0")"
 C="$HOME/.claude"
-mkdir -p "$C/skills" "$C/agents" "$C/tc-cache"
+mkdir -p "$C/skills" "$C/agents"
 
 # 0. settings.json must be valid JSON before we touch anything
 if [ -e "$C/settings.json" ] && ! python3 -m json.tool "$C/settings.json" >/dev/null 2>&1; then
