@@ -64,6 +64,7 @@ No external tools, no servers, no accounts. Python 3 only (already on Mac/Linux)
 
 ## Good to know
 
-- **Compressed originals are kept on disk** at `~/.claude/tc-cache/` in plain text so they're recoverable — logs can contain secrets, so files auto-delete after 7 days (`rm -rf ~/.claude/tc-cache` anytime to wipe early).
+- **The global rules block costs ~350 tokens on every request** — a fair trade once the rules prevent even one unnecessary file read, but worth knowing.
+- **Compressed originals are kept on disk** at `~/.claude/tc-cache/` (mode 0600, directory 0700) so they're recoverable — logs can contain secrets, so files auto-delete after 7 days (`rm -rf ~/.claude/tc-cache` anytime to wipe early).
 - Re-running `install.sh` upgrades the skill in place (it replaces the skill folder; your agents and CLAUDE.md edits are left alone).
 - Uninstall: `bash uninstall.sh`.

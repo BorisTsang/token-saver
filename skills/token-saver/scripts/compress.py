@@ -27,6 +27,7 @@ def save_original(text):
     h = hashlib.sha256(text.encode()).hexdigest()[:12]
     try:
         CACHE.mkdir(parents=True, exist_ok=True)
+        CACHE.chmod(0o700)
         cutoff = time.time() - 7 * 86400  # originals may hold secrets — auto-prune after 7 days
         for old in CACHE.glob("*.orig"):
             if old.stat().st_mtime < cutoff:
@@ -34,6 +35,7 @@ def save_original(text):
         p = CACHE / f"{h}.orig"
         if not p.exists():
             p.write_text(text)
+            p.chmod(0o600)
     except OSError:
         return None  # cache unavailable — still compress, just not restorable
     return h
@@ -165,12 +167,11 @@ def main():
         mode = mode or detect(text)
     if not text.strip():
         return
-    h = save_original(text)
     out = {"log": compress_log, "json": compress_json, "code": compress_code}[mode](text)
     if est(out) >= est(text):
-        out = text  # compression didn't help; show original
-        print(out)
+        print(text)  # compression didn't help; pass through without caching
         return
+    h = save_original(text)  # only cache when we actually compressed
     print(out)
     tail = f"full: compress.py --restore {h}" if h else "original not cached"
     note = {"json": " | nulls/empties dropped, long strings truncated, big arrays sampled",

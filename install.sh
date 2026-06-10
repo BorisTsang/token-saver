@@ -11,16 +11,30 @@ if [ -e "$C/settings.json" ] && ! python3 -m json.tool "$C/settings.json" >/dev/
   exit 1
 fi
 
-# 1. skill (note: replaces any previous version, including local edits to it)
+# 1. skill (always replace fully so no stale scripts survive)
 [ -d "$C/skills/token-saver" ] && echo "  note: replacing existing token-saver skill"
+rm -rf "$C/skills/token-saver"
 cp -r skills/token-saver "$C/skills/"
 chmod +x "$C/skills/token-saver/scripts/"*.py
 echo "✓ skill installed"
 
-# 2. agents (don't overwrite customized ones)
+# 2. agents (don't overwrite customized ones; manifest tracks what we own for safe uninstall)
+MANIFEST="$C/agents/.token-saver-manifest"
+OLD_MANIFEST=""; [ -f "$MANIFEST" ] && OLD_MANIFEST=$(cat "$MANIFEST")
+: > "$MANIFEST"
 for f in agents/*.md; do
-  t="$C/agents/$(basename "$f")"
-  [ -e "$t" ] && echo "  skip $(basename "$f") (exists)" || { cp "$f" "$t"; echo "✓ agent $(basename "$f")"; }
+  base=$(basename "$f"); t="$C/agents/$base"
+  if [ -e "$t" ]; then
+    if echo "$OLD_MANIFEST" | grep -qxF "$base"; then
+      echo "$base" >> "$MANIFEST"  # we own it — keep tracking
+      echo "  skip $base (exists)"
+    else
+      echo "  skip $base (user-owned, not touched)"
+    fi
+  else
+    cp "$f" "$t"; echo "$base" >> "$MANIFEST"
+    echo "✓ agent $base"
+  fi
 done
 
 # 3. global rules

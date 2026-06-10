@@ -4,9 +4,16 @@ set -e
 C="$HOME/.claude"
 
 rm -rf "$C/skills/token-saver" && echo "✓ skill removed"
-for a in architect dev qa-reviewer security-expert uiux-designer; do
-  rm -f "$C/agents/$a.md"
-done
+MANIFEST="$C/agents/.token-saver-manifest"
+if [ -f "$MANIFEST" ]; then
+  while IFS= read -r a; do rm -f "$C/agents/$a"; done < "$MANIFEST"
+  rm -f "$MANIFEST"
+else
+  # fallback: pre-manifest installs
+  for a in architect.md dev.md qa-reviewer.md security-expert.md uiux-designer.md; do
+    rm -f "$C/agents/$a"
+  done
+fi
 echo "✓ agents removed"
 
 python3 - <<'EOF'
