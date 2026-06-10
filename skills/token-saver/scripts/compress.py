@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 import sys
+import time
 from pathlib import Path
 
 CACHE = Path.home() / ".claude" / "tc-cache"
@@ -26,6 +27,10 @@ def save_original(text):
     h = hashlib.sha256(text.encode()).hexdigest()[:12]
     try:
         CACHE.mkdir(parents=True, exist_ok=True)
+        cutoff = time.time() - 7 * 86400  # originals may hold secrets — auto-prune after 7 days
+        for old in CACHE.glob("*.orig"):
+            if old.stat().st_mtime < cutoff:
+                old.unlink(missing_ok=True)
         p = CACHE / f"{h}.orig"
         if not p.exists():
             p.write_text(text)
@@ -129,12 +134,21 @@ def detect(text, name=""):
             return "json"
         except Exception:
             pass
+    # piped Python source (no filename) should still skeletonize, not log-compress
+    if re.search(r"^(def |class |import |from \w+ import )", text, re.M):
+        try:
+            ast.parse(text)
+            return "code"
+        except SyntaxError:
+            pass
     return "log"
 
 
 def main():
     args = sys.argv[1:]
     if args and args[0] == "--restore":
+        if len(args) < 2:
+            sys.exit("usage: compress.py --restore HASH")
         p = CACHE / f"{args[1]}.orig"
         sys.stdout.write(p.read_text() if p.exists() else f"no cached original {args[1]}\n")
         return
@@ -159,7 +173,9 @@ def main():
         return
     print(out)
     tail = f"full: compress.py --restore {h}" if h else "original not cached"
-    print(f"\n[compressed {mode}: ~{est(text)}→~{est(out)} tok | {tail}]")
+    note = {"json": " | nulls/empties dropped, long strings truncated, big arrays sampled",
+            "code": " | bodies elided, signatures kept", "log": ""}[mode]
+    print(f"\n[compressed {mode}: ~{est(text)}→~{est(out)} tok{note} | {tail}]")
 
 
 if __name__ == "__main__":

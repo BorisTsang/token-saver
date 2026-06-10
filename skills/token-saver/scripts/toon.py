@@ -45,7 +45,7 @@ def encode_array(name, arr):
         sys.exit("refused: not an array of objects — keep this as JSON")
     keys = list(arr[0].keys())
     for x in arr:
-        if list(x.keys()) != keys:
+        if set(x.keys()) != set(keys):  # same keys in any order are fine — rows emit in header order
             sys.exit("refused: non-uniform objects (different keys) — keep this as JSON")
         if not all(is_scalar(v) for v in x.values()):
             sys.exit("refused: nested values — TOON only helps flat tabular data, keep JSON")

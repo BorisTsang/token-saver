@@ -1,6 +1,8 @@
 # 💰 token-saver — make Claude Code cheaper AND smarter
 
-A skill pack for Claude Code. It cuts token spend 40–70% by removing waste (not by making Claude dumber), gives Claude permanent memory of your projects, and installs a team of expert AI agents that review each other's work.
+A skill pack for Claude Code. It cuts token spend by removing waste (not by making Claude dumber), gives Claude permanent memory of your projects, and installs a team of expert AI agents that review each other's work.
+
+Measured on the included test samples: a repetitive log shrank **536 → 182 tokens**, a JSON dump **6,948 → 513 tokens**, and TOON encoding cuts flat JSON tables ~40%. On top of that come the unmeasurable wins: no re-reading whole files, no fluff in answers, no re-discovering your project every session. Total savings depend on how you work.
 
 ## Install
 
@@ -23,7 +25,7 @@ To update later: `git pull && bash install.sh`.
 | 🗜 **Shrinks big outputs** | Huge logs/JSON/code get compressed 60–95% before entering chat. Original is kept on disk — nothing is lost. |
 | 🧠 **Memory** | Claude saves project facts & decisions to a `NOTES.md` file. Next session it already knows your project — no expensive re-discovery. |
 | 📈 **Self-improving** | Every time you correct Claude ("don't do X", "always Y"), it saves that as a permanent rule. Fewer repeated mistakes forever. |
-| 💾 **Crash insurance** | Before Claude compresses a long conversation, a hook makes sure your goal + progress survive. |
+| 💾 **Crash insurance** | On every session start — including after restarts and conversation compaction — a hook re-injects your project's NOTES.md, so the goal and progress are never lost. |
 
 ## Commands (type these in Claude Code when you want)
 
@@ -50,10 +52,18 @@ Token-smart: only relevant roles activate, and reviewers only see the changed co
 ## What's inside
 
 ```
-skills/token-saver/   the skill: rules, scripts (compress.py, toon.py), templates
+skills/token-saver/   the skill: rules, scripts (compress.py, toon.py, hooks), templates
 agents/               5 expert agent definitions
 CLAUDE-global.md      the always-on rules (installer puts it at ~/.claude/CLAUDE.md)
 install.sh            installer (also merges 2 hooks into your settings)
+uninstall.sh          removes everything cleanly
+test.sh               full test suite (also runs in CI)
 ```
 
 No external tools, no servers, no accounts. Python 3 only (already on Mac/Linux).
+
+## Good to know
+
+- **Compressed originals are kept on disk** at `~/.claude/tc-cache/` in plain text so they're recoverable — logs can contain secrets, so files auto-delete after 7 days (`rm -rf ~/.claude/tc-cache` anytime to wipe early).
+- Re-running `install.sh` upgrades the skill in place (it replaces the skill folder; your agents and CLAUDE.md edits are left alone).
+- Uninstall: `bash uninstall.sh`.

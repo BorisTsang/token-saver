@@ -38,6 +38,6 @@ When the user corrects you or states a preference: distill to ONE line. About th
 
 ## Compression notes
 
-- compress.py caches originals at `~/.claude/tc-cache/<hash>.orig`. Safe to clear old files anytime.
+- compress.py caches originals at `~/.claude/tc-cache/<hash>.orig` (plain text — may hold secrets; auto-pruned after 7 days, safe to clear anytime).
 - If compression wouldn't save tokens, it prints the original unchanged.
 - Modes: `--mode log|json|code` to override detection.
